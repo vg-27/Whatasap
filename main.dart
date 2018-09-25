@@ -110,7 +110,7 @@ class _MyLoginPageState extends State<MyLoginPage> {
       form.save();
       print('Username: $username');
       print('Password: $password');
-      session.post('http://192.168.2.11:8080/outlab8/LoginServlet',
+      session.post('http://10.196.5.236:8080/outlab8/LoginServlet',
           {"userid": username, "password": password}).then(_resToAuth);
     }
   }
@@ -121,6 +121,8 @@ class _MyLoginPageState extends State<MyLoginPage> {
       print('Authorised');
     } else {
       print('Authorisation failed');
+      final snackBar = SnackBar(content: Text('Login Failed'));
+      Scaffold.of(context).showSnackBar(snackBar);
     }
   }
 }
