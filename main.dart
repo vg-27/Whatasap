@@ -9,7 +9,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-      title: 'Flutter Demo',
+      title: 'What A Sap',
       theme: new ThemeData(
 
         primarySwatch: Colors.blue,
@@ -32,8 +32,12 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context){
     return Scaffold (
       appBar : AppBar(
-        title: Text('Home Page'),
-
+        title: Text('Chats'),
+        actions: <Widget>[
+          new IconButton(icon: const Icon(Icons.create), onPressed: null),
+          new IconButton(icon: const Icon(Icons.home), onPressed: null),
+          new IconButton(icon: const Icon(Icons.exit_to_app), onPressed: null)
+        ]
       ),
       body: Text('Hello and fuck off'),
     );
@@ -121,3 +125,4 @@ class _MyLoginPageState extends State<MyLoginPage> {
     }
   }
 }
+
