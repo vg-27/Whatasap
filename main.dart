@@ -11,7 +11,6 @@ class MyApp extends StatelessWidget {
     return new MaterialApp(
       title: 'Flutter Demo',
       theme: new ThemeData(
-
         primarySwatch: Colors.blue,
       ),
       home: new MyLoginPage(title: 'Login'),
@@ -20,7 +19,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key, key, this.title}) : super(key: key);
+  MyHomePage({Key key, this.title}) : super(key: key);
   final String title;
 
   @override
@@ -29,11 +28,10 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   @override
-  Widget build(BuildContext context){
-    return Scaffold (
-      appBar : AppBar(
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
         title: Text('Home Page'),
-
       ),
       body: Text('Hello and fuck off'),
     );
@@ -50,8 +48,9 @@ class MyLoginPage extends StatefulWidget {
 }
 
 class _MyLoginPageState extends State<MyLoginPage> {
-
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+
   String username = '';
   String password = '';
 
@@ -60,6 +59,7 @@ class _MyLoginPageState extends State<MyLoginPage> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
+      key: _scaffoldKey,
       appBar: new AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
@@ -112,12 +112,13 @@ class _MyLoginPageState extends State<MyLoginPage> {
   void _resToAuth(s) {
     Map<String, dynamic> response = json.decode(s);
     if (response['status']) {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => MyHomePage()));
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => MyHomePage()));
       print('Authorised');
     } else {
       print('Authorisation failed');
       final snackBar = SnackBar(content: Text('Login Failed'));
-      Scaffold.of(context).showSnackBar(snackBar);
+      _scaffoldKey.currentState.showSnackBar(snackBar);
     }
   }
 }
