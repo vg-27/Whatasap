@@ -19,25 +19,35 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-  final String title;
+  MyHomePage({Key key, this.session, this.id}) : super(key: key);
+  final Session session;
+  final String id;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  String otherId = 'p2';
   @override
-  Widget build(BuildContext context){
-    return Scaffold (
-      appBar : AppBar(
-        title: Text('Chats'),
-        actions: <Widget>[
-          new IconButton(icon: const Icon(Icons.create), onPressed: null),
-          new IconButton(icon: const Icon(Icons.home), onPressed: null),
-          new IconButton(icon: const Icon(Icons.exit_to_app), onPressed: null)
-        ]
-      ),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Chats'), actions: <Widget>[
+        new IconButton(icon: const Icon(Icons.create), onPressed: null),
+        new IconButton(
+            icon: const Icon(Icons.home),
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ChatDetail(
+                            session: widget.session,
+                            id: widget.id,
+                            otherId: otherId,
+                          )));
+            }),
+        new IconButton(icon: const Icon(Icons.exit_to_app), onPressed: null)
+      ]),
       body: Text('Hello and fuck off'),
     );
   }
@@ -118,7 +128,10 @@ class _MyLoginPageState extends State<MyLoginPage> {
     Map<String, dynamic> response = json.decode(s);
     if (response['status']) {
       Navigator.push(
-          context, MaterialPageRoute(builder: (context) => MyHomePage()));
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  MyHomePage(session: session, id: username)));
       print('Authorised');
     } else {
       print('Authorisation failed');
@@ -128,3 +141,61 @@ class _MyLoginPageState extends State<MyLoginPage> {
   }
 }
 
+class ChatDetail extends StatefulWidget {
+  final Session session;
+  final String id;
+  final String otherId;
+
+  ChatDetail({Key key, this.session, this.id, this.otherId}) : super(key: key);
+  @override
+  _ChatDetailState createState() => new _ChatDetailState();
+}
+
+class _ChatDetailState extends State<ChatDetail> {
+//  String id = widget.id;
+//  String otherId = ;
+//
+//  var Session session;
+//  session = widget.session;
+  var _messages = <Map<String, dynamic>>[];
+
+  void _resToConv(s) {
+    Map<String, dynamic> response = json.decode(s);
+    _messages = response["data"];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    widget.session.post('http://10.196.5.236:8080/outlab8/LoginServlet',
+        {"id": widget.id, "other_id": widget.otherId}).then(_resToConv);
+    return new Scaffold(
+      appBar: new AppBar(
+        title: Text(widget.otherId),
+      ),
+      body: new Column(
+        children: <Widget>[
+          _buildConv(),
+          new Divider(
+            height: 1.0,
+          ),
+          new TextFormField(
+            onFieldSubmitted: (val) {
+              widget.session.post(
+                  'http://10.196.5.236:8080/outlab8/LoginServlet',
+                  {"id": widget.id, "other_id": widget.otherId, "msg": val});
+            },
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConv() {
+    return ListView.builder(itemBuilder: (context, i) {
+      return ListTile(
+        title: Text(_messages[i]["text"]),
+      );
+    });
+  }
+}
