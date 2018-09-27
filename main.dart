@@ -119,7 +119,7 @@ class _MyLoginPageState extends State<MyLoginPage> {
       form.save();
       print('Username: $username');
       print('Password: $password');
-      session.post('http://10.196.5.236:8080/outlab8/LoginServlet',
+      session.post('http://192.168.2.11:8080/outlab8/LoginServlet',
           {"userid": username, "password": password}).then(_resToAuth);
     }
   }
@@ -157,7 +157,7 @@ class _ChatDetailState extends State<ChatDetail> {
 //
 //  var Session session;
 //  session = widget.session;
-  var _messages = <Map<String, dynamic>>[];
+  var _messages = <dynamic>[];
 
   void _resToConv(s) {
     Map<String, dynamic> response = json.decode(s);
@@ -167,7 +167,7 @@ class _ChatDetailState extends State<ChatDetail> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    widget.session.post('http://10.196.5.236:8080/outlab8/LoginServlet',
+    widget.session.post('http://192.168.2.11:8080/outlab8/ConversationDetail',
         {"id": widget.id, "other_id": widget.otherId}).then(_resToConv);
     return new Scaffold(
       appBar: new AppBar(
@@ -175,14 +175,14 @@ class _ChatDetailState extends State<ChatDetail> {
       ),
       body: new Column(
         children: <Widget>[
-          _buildConv(),
+//
+          new Flexible(child: _buildConv()),
           new Divider(
             height: 1.0,
           ),
           new TextFormField(
             onFieldSubmitted: (val) {
-              widget.session.post(
-                  'http://10.196.5.236:8080/outlab8/LoginServlet',
+              widget.session.post('http://192.168.2.11:8080/outlab8/NewMessage',
                   {"id": widget.id, "other_id": widget.otherId, "msg": val});
             },
           )
@@ -192,10 +192,13 @@ class _ChatDetailState extends State<ChatDetail> {
   }
 
   Widget _buildConv() {
-    return ListView.builder(itemBuilder: (context, i) {
-      return ListTile(
-        title: Text(_messages[i]["text"]),
-      );
-    });
+    return ListView.builder(
+        padding: new EdgeInsets.all(8.0),
+//        reverse: true,
+        itemBuilder: (context, i) {
+          return ListTile(
+            title: Text(_messages[i]["text"]),
+          );
+        });
   }
 }
