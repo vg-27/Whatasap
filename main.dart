@@ -32,7 +32,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String otherId = 'p2';
   final TextStyle _biggerFont = const TextStyle(fontSize: 18.0);
   var _allConv = <dynamic>[];
 
@@ -53,7 +52,7 @@ class _MyHomePageState extends State<MyHomePage> {
               builder: (context) => ChatDetail(
                 session: widget.session,
                 id: widget.id,
-                otherId: otherId,
+                otherId: row["uid"],
               )));},
     );
   }
@@ -73,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   _getChats() async{
     widget.session.post(_url + 'AllConversations', {"id":widget.id}).then(_allConversations);
-    return new Future.delayed(Duration(seconds:5), () => _buildChats());
+    return new Future.delayed(Duration(seconds:1), () => _buildChats());
   }
 
   final GlobalKey<AsyncLoaderState> _asyncLoaderState =
@@ -94,17 +93,20 @@ class _MyHomePageState extends State<MyHomePage> {
         new IconButton(icon: const Icon(Icons.create), onPressed: null),
         new IconButton(
             icon: const Icon(Icons.home),
-            onPressed: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ChatDetail(
-                            session: widget.session,
-                            id: widget.id,
-                            otherId: otherId,
-                          )));
-            }),
-        new IconButton(icon: const Icon(Icons.exit_to_app), onPressed: null)
+//            onPressed: () {
+//              Navigator.push(
+//                  context,
+//                  MaterialPageRoute(
+//                      builder: (context) => ChatDetail(
+//                            session: widget.session,
+//                            id: widget.id,
+//                            otherId: otherId,
+//                          )));
+//            }
+            ),
+        new IconButton(icon: const Icon(Icons.exit_to_app), onPressed: (){
+          Navigator.pop(context);
+        })
       ]),
       body: _asyncLoader,
     );
