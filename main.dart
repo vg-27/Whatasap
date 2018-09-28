@@ -108,11 +108,6 @@ class _MyLoginPageState extends State<MyLoginPage> {
           ),
         ),
       ),
-//      floatingActionButton: new FloatingActionButton(
-//        onPressed: _incrementCounter,
-//        tooltip: 'Increment',
-//        child: new Icon(Icons.add),
-//      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
@@ -160,15 +155,23 @@ class _ChatDetailState extends State<ChatDetail> {
 
   void _resToConv(s) {
     Map<String, dynamic> response = json.decode(s);
-    _messages = response["data"];
+    setState(() {
+      _messages = response["data"];
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    widget.session.post(_url + 'ConversationDetail',
+        {"id": widget.id, "other_id": widget.otherId}).then(_resToConv);
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    widget.session.post(_url + 'ConversationDetail',
-        {"id": widget.id, "other_id": widget.otherId}).then(_resToConv);
     // TODO: implement build
-
+    print(_messages.length);
     return new Scaffold(
       appBar: new AppBar(
         title: Text(widget.otherId),
@@ -184,37 +187,14 @@ class _ChatDetailState extends State<ChatDetail> {
                   name: _messages[i]["uid"],
                   text: _messages[i]["text"],
                 ),
-//      {
-//        return new ListTile(
-//          title: new Text(''''${_messages[i]["uid"]}
-//                ${_messages[i]["text"]}'''),
-//        );
-//      },
             itemCount: _messages.length,
           )),
           new Divider(
             height: 1.0,
           ),
-//          new Container(
-//            child: _buildTextComposer(),
-//          ),
-//          new Container(
-//            margin: const EdgeInsets.symmetric(horizontal: 8.0),
-//            child: new Row(children: <Widget>[
-//              new TextFormField(
-//                controller: _textController,
-//                onFieldSubmitted: (val) {
-//                  _handleSubmitted(val);
-//                },
-//              ),
-////              new Container(
-////                margin: EdgeInsets.symmetric(horizontal: 4.0),
-////                child: new IconButton(
-////                    icon: new Icon(Icons.send),
-////                    onPressed: () => _handleSubmitted(_textController.text)),
-////              )
-//            ]),
-//          )
+          new Container(
+            child: _buildTextComposer(),
+          ),
         ],
       ),
     );
@@ -226,12 +206,12 @@ class _ChatDetailState extends State<ChatDetail> {
 
   void _handleSubmitted(String val) {
     _textController.clear();
-    widget.session.post(_url + 'NewMessage',
-        {"id": widget.id, "other_id": widget.otherId, "msg": val});
-    setState(() {
-      widget.session.post(_url + 'ConversationDetail',
-          {"id": widget.id, "other_id": widget.otherId}).then(_resToConv);
-    });
+    widget.session.post(_url + 'NewMessage', {
+      "id": widget.id,
+      "other_id": widget.otherId,
+      "msg": val
+    }).then((val) => widget.session.post(_url + 'ConversationDetail',
+        {"id": widget.id, "other_id": widget.otherId}).then(_resToConv));
   }
 
   Widget _buildTextComposer() {
