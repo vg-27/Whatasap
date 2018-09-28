@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'session.dart';
 import 'dart:convert';
-//import 'dart:async';
+import 'package:async_loader/async_loader.dart';
+import 'dart:async';
 
 void main() => runApp(new MyApp());
 
@@ -32,8 +33,62 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String otherId = 'p2';
+  final TextStyle _biggerFont = const TextStyle(fontSize: 18.0);
+  var _allConv = <dynamic>[];
+
+  void _allConversations(s){
+    Map<String, dynamic> response = json.decode(s);
+    setState(() {
+      _allConv = response["data"];
+    });
+  }
+
+  Widget _buildRow(dynamic row){
+    return new ListTile(
+      title: Text(row["name"], style: _biggerFont),
+      trailing: Text(row["timestamp"]),
+      onTap: () {Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => ChatDetail(
+                session: widget.session,
+                id: widget.id,
+                otherId: otherId,
+              )));},
+    );
+  }
+
+  Widget _buildChats(){
+    print("hi");
+    return new ListView.builder(
+      padding : const EdgeInsets.all(16.0),
+      itemBuilder: (_, i){
+//        else
+          return _buildRow(_allConv[i]);
+      },
+      itemCount: _allConv.length,
+    );
+  }
+
+
+  _getChats() async{
+    widget.session.post(_url + 'AllConversations', {"id":widget.id}).then(_allConversations);
+    return new Future.delayed(Duration(seconds:5), () => _buildChats());
+  }
+
+  final GlobalKey<AsyncLoaderState> _asyncLoaderState =
+  new GlobalKey<AsyncLoaderState>();
+
   @override
   Widget build(BuildContext context) {
+    var _asyncLoader = new AsyncLoader(
+      key: _asyncLoaderState,
+      initState: () async => await _getChats(),
+      renderLoad: () => Text("Loading : Wait for some time"),
+      renderSuccess: ({data}) => data,
+    );
+
+    print(_allConv.length);
     return Scaffold(
       appBar: AppBar(title: Text('Chats'), actions: <Widget>[
         new IconButton(icon: const Icon(Icons.create), onPressed: null),
@@ -51,7 +106,7 @@ class _MyHomePageState extends State<MyHomePage> {
             }),
         new IconButton(icon: const Icon(Icons.exit_to_app), onPressed: null)
       ]),
-      body: Text('Hello and fuck off'),
+      body: _asyncLoader,
     );
   }
 }
@@ -108,6 +163,11 @@ class _MyLoginPageState extends State<MyLoginPage> {
           ),
         ),
       ),
+//      floatingActionButton: new FloatingActionButton(
+//        onPressed: _incrementCounter,
+//        tooltip: 'Increment',
+//        child: new Icon(Icons.add),
+//      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
@@ -155,23 +215,15 @@ class _ChatDetailState extends State<ChatDetail> {
 
   void _resToConv(s) {
     Map<String, dynamic> response = json.decode(s);
-    setState(() {
-      _messages = response["data"];
-    });
-  }
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    widget.session.post(_url + 'ConversationDetail',
-        {"id": widget.id, "other_id": widget.otherId}).then(_resToConv);
-    super.initState();
+    _messages = response["data"];
   }
 
   @override
   Widget build(BuildContext context) {
+    widget.session.post(_url + 'ConversationDetail',
+        {"id": widget.id, "other_id": widget.otherId}).then(_resToConv);
     // TODO: implement build
-    print(_messages.length);
+
     return new Scaffold(
       appBar: new AppBar(
         title: Text(widget.otherId),
@@ -187,13 +239,11 @@ class _ChatDetailState extends State<ChatDetail> {
                   name: _messages[i]["uid"],
                   text: _messages[i]["text"],
                 ),
+
             itemCount: _messages.length,
           )),
           new Divider(
             height: 1.0,
-          ),
-          new Container(
-            child: _buildTextComposer(),
           ),
         ],
       ),
@@ -206,12 +256,12 @@ class _ChatDetailState extends State<ChatDetail> {
 
   void _handleSubmitted(String val) {
     _textController.clear();
-    widget.session.post(_url + 'NewMessage', {
-      "id": widget.id,
-      "other_id": widget.otherId,
-      "msg": val
-    }).then((val) => widget.session.post(_url + 'ConversationDetail',
-        {"id": widget.id, "other_id": widget.otherId}).then(_resToConv));
+    widget.session.post(_url + 'NewMessage',
+        {"id": widget.id, "other_id": widget.otherId, "msg": val});
+    setState(() {
+      widget.session.post(_url + 'ConversationDetail',
+          {"id": widget.id, "other_id": widget.otherId}).then(_resToConv);
+    });
   }
 
   Widget _buildTextComposer() {
@@ -267,3 +317,4 @@ class ChatMessage extends StatelessWidget {
     );
   }
 }
+
