@@ -35,48 +35,51 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextStyle _biggerFont = const TextStyle(fontSize: 18.0);
   var _allConv = <dynamic>[];
 
-  void _allConversations(s){
+  void _allConversations(s) {
     Map<String, dynamic> response = json.decode(s);
     setState(() {
       _allConv = response["data"];
     });
   }
 
-  Widget _buildRow(dynamic row){
+  Widget _buildRow(dynamic row) {
     return new ListTile(
       title: Text(row["name"], style: _biggerFont),
       trailing: Text(row["timestamp"]),
-      onTap: () {Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => ChatDetail(
-                session: widget.session,
-                id: widget.id,
-                otherId: row["uid"],
-              )));},
+      onTap: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ChatDetail(
+                      session: widget.session,
+                      id: widget.id,
+                      otherId: row["uid"],
+                      otherName: row["name"],
+                    )));
+      },
     );
   }
 
-  Widget _buildChats(){
+  Widget _buildChats() {
     print("hi");
     return new ListView.builder(
-      padding : const EdgeInsets.all(16.0),
-      itemBuilder: (_, i){
+      padding: const EdgeInsets.all(16.0),
+      itemBuilder: (_, i) {
 //        else
-          return _buildRow(_allConv[i]);
+        return _buildRow(_allConv[i]);
       },
       itemCount: _allConv.length,
     );
   }
 
-
-  _getChats() async{
-    widget.session.post(_url + 'AllConversations', {"id":widget.id}).then(_allConversations);
-    return new Future.delayed(Duration(seconds:1), () => _buildChats());
+  _getChats() async {
+    widget.session.post(
+        _url + 'AllConversations', {"id": widget.id}).then(_allConversations);
+    return new Future.delayed(Duration(seconds: 1), () => _buildChats());
   }
 
   final GlobalKey<AsyncLoaderState> _asyncLoaderState =
-  new GlobalKey<AsyncLoaderState>();
+      new GlobalKey<AsyncLoaderState>();
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(title: Text('Chats'), actions: <Widget>[
         new IconButton(icon: const Icon(Icons.create), onPressed: null),
         new IconButton(
-            icon: const Icon(Icons.home),
+          icon: const Icon(Icons.home), onPressed: null,
 //            onPressed: () {
 //              Navigator.push(
 //                  context,
@@ -103,10 +106,12 @@ class _MyHomePageState extends State<MyHomePage> {
 //                            otherId: otherId,
 //                          )));
 //            }
-            ),
-        new IconButton(icon: const Icon(Icons.exit_to_app), onPressed: (){
-          Navigator.pop(context);
-        })
+        ),
+        new IconButton(
+            icon: const Icon(Icons.exit_to_app),
+            onPressed: () {
+              Navigator.pop(context);
+            })
       ]),
       body: _asyncLoader,
     );
@@ -205,8 +210,10 @@ class ChatDetail extends StatefulWidget {
   final Session session;
   final String id;
   final String otherId;
+  final String otherName;
 
-  ChatDetail({Key key, this.session, this.id, this.otherId}) : super(key: key);
+  ChatDetail({Key key, this.session, this.id, this.otherId, this.otherName})
+      : super(key: key);
   @override
   _ChatDetailState createState() => new _ChatDetailState();
 }
@@ -217,18 +224,19 @@ class _ChatDetailState extends State<ChatDetail> {
 
   void _resToConv(s) {
     Map<String, dynamic> response = json.decode(s);
-    _messages = response["data"];
+    setState(() {
+      _messages = response["data"];
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // TODO: implement build
     widget.session.post(_url + 'ConversationDetail',
         {"id": widget.id, "other_id": widget.otherId}).then(_resToConv);
-    // TODO: implement build
-
     return new Scaffold(
       appBar: new AppBar(
-        title: Text(widget.otherId),
+        title: Text(widget.otherName),
       ),
       body: new Column(
         children: <Widget>[
@@ -241,12 +249,14 @@ class _ChatDetailState extends State<ChatDetail> {
                   name: _messages[i]["name"],
                   text: _messages[i]["text"],
                 ),
-
             itemCount: _messages.length,
           )),
           new Divider(
             height: 1.0,
           ),
+          new Container(
+            child: _buildTextComposer(),
+          )
         ],
       ),
     );
@@ -258,12 +268,12 @@ class _ChatDetailState extends State<ChatDetail> {
 
   void _handleSubmitted(String val) {
     _textController.clear();
-    widget.session.post(_url + 'NewMessage',
-        {"id": widget.id, "other_id": widget.otherId, "msg": val});
-    setState(() {
-      widget.session.post(_url + 'ConversationDetail',
-          {"id": widget.id, "other_id": widget.otherId}).then(_resToConv);
-    });
+    widget.session.post(_url + 'NewMessage', {
+      "id": widget.id,
+      "other_id": widget.otherId,
+      "msg": val
+    }).then((val) => widget.session.post(_url + 'ConversationDetail',
+        {"id": widget.id, "other_id": widget.otherId}).then(_resToConv));
   }
 
   Widget _buildTextComposer() {
@@ -319,4 +329,3 @@ class ChatMessage extends StatelessWidget {
     );
   }
 }
-
