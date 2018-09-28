@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'session.dart';
 import 'dart:convert';
+//import 'dart:async';
 
 void main() => runApp(new MyApp());
+
+const String _url = 'http://192.168.0.165:8080/outlab8/';
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -119,7 +122,7 @@ class _MyLoginPageState extends State<MyLoginPage> {
       form.save();
       print('Username: $username');
       print('Password: $password');
-      session.post('http://192.168.2.11:8080/outlab8/LoginServlet',
+      session.post(_url + 'LoginServlet',
           {"userid": username, "password": password}).then(_resToAuth);
     }
   }
@@ -152,11 +155,7 @@ class ChatDetail extends StatefulWidget {
 }
 
 class _ChatDetailState extends State<ChatDetail> {
-//  String id = widget.id;
-//  String otherId = ;
-//
-//  var Session session;
-//  session = widget.session;
+  final TextEditingController _textController = new TextEditingController();
   var _messages = <dynamic>[];
 
   void _resToConv(s) {
@@ -166,9 +165,10 @@ class _ChatDetailState extends State<ChatDetail> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    widget.session.post('http://192.168.2.11:8080/outlab8/ConversationDetail',
+    widget.session.post(_url + 'ConversationDetail',
         {"id": widget.id, "other_id": widget.otherId}).then(_resToConv);
+    // TODO: implement build
+
     return new Scaffold(
       appBar: new AppBar(
         title: Text(widget.otherId),
@@ -176,29 +176,114 @@ class _ChatDetailState extends State<ChatDetail> {
       body: new Column(
         children: <Widget>[
 //
-          new Flexible(child: _buildConv()),
+          new Flexible(
+              child: new ListView.builder(
+            padding: new EdgeInsets.all(8.0),
+//        reverse: true,
+            itemBuilder: (_, i) => new ChatMessage(
+                  name: _messages[i]["uid"],
+                  text: _messages[i]["text"],
+                ),
+//      {
+//        return new ListTile(
+//          title: new Text(''''${_messages[i]["uid"]}
+//                ${_messages[i]["text"]}'''),
+//        );
+//      },
+            itemCount: _messages.length,
+          )),
           new Divider(
             height: 1.0,
           ),
-          new TextFormField(
-            onFieldSubmitted: (val) {
-              widget.session.post('http://192.168.2.11:8080/outlab8/NewMessage',
-                  {"id": widget.id, "other_id": widget.otherId, "msg": val});
-            },
-          )
+//          new Container(
+//            child: _buildTextComposer(),
+//          ),
+//          new Container(
+//            margin: const EdgeInsets.symmetric(horizontal: 8.0),
+//            child: new Row(children: <Widget>[
+//              new TextFormField(
+//                controller: _textController,
+//                onFieldSubmitted: (val) {
+//                  _handleSubmitted(val);
+//                },
+//              ),
+////              new Container(
+////                margin: EdgeInsets.symmetric(horizontal: 4.0),
+////                child: new IconButton(
+////                    icon: new Icon(Icons.send),
+////                    onPressed: () => _handleSubmitted(_textController.text)),
+////              )
+//            ]),
+//          )
         ],
       ),
     );
   }
 
-  Widget _buildConv() {
-    return ListView.builder(
-        padding: new EdgeInsets.all(8.0),
-//        reverse: true,
-        itemBuilder: (context, i) {
-          return ListTile(
-            title: Text(_messages[i]["text"]),
-          );
-        });
+//  Widget _buildChat() {
+//    return
+//  }
+
+  void _handleSubmitted(String val) {
+    _textController.clear();
+    widget.session.post(_url + 'NewMessage',
+        {"id": widget.id, "other_id": widget.otherId, "msg": val});
+    setState(() {
+      widget.session.post(_url + 'ConversationDetail',
+          {"id": widget.id, "other_id": widget.otherId}).then(_resToConv);
+    });
+  }
+
+  Widget _buildTextComposer() {
+    return new Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: new Row(
+        children: <Widget>[
+          new Flexible(
+            child: new TextField(
+              controller: _textController,
+              onSubmitted: _handleSubmitted,
+              decoration:
+                  new InputDecoration.collapsed(hintText: "Send a message"),
+            ),
+          ),
+          new Container(
+            margin: new EdgeInsets.symmetric(horizontal: 4.0),
+            child: new IconButton(
+                icon: new Icon(Icons.send),
+                onPressed: () => _handleSubmitted(_textController.text)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ChatMessage extends StatelessWidget {
+  final String name;
+  final String text;
+
+  ChatMessage({this.name, this.text});
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return new Container(
+      margin: const EdgeInsets.symmetric(vertical: 10.0),
+      child: new Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          new Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              new Text(name),
+              new Container(
+                margin: const EdgeInsets.only(top: 5.0),
+                child: Text(text),
+              )
+            ],
+          )
+        ],
+      ),
+    );
   }
 }
