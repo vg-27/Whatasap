@@ -182,9 +182,9 @@ class _ChatDetailState extends State<ChatDetail> {
           new Flexible(
               child: new ListView.builder(
             padding: new EdgeInsets.all(8.0),
-//        reverse: true,
+            reverse: true,
             itemBuilder: (_, i) => new ChatMessage(
-                  name: _messages[i]["uid"],
+                  name: _messages[i]["name"],
                   text: _messages[i]["text"],
                 ),
             itemCount: _messages.length,
