@@ -3,10 +3,11 @@ import 'session.dart';
 import 'dart:convert';
 import 'package:async_loader/async_loader.dart';
 import 'dart:async';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 void main() => runApp(new MyApp());
 
-const String _url = 'http://192.168.2.11:8080/outlab8/';
+const String _url = 'http://192.168.2.12:8080/whatsapp/';
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -102,7 +103,9 @@ class _MyHomePageState extends State<MyHomePage> {
     print(searchStr);
     return Scaffold(
       appBar: AppBar(title: Text('Chats'), actions: <Widget>[
-        new IconButton(icon: const Icon(Icons.create), onPressed: null),
+        new IconButton(icon: const Icon(Icons.create),
+            onPressed: ()=>Navigator.push(context, MaterialPageRoute(builder: (context) => CreateChat(session:widget.session, id:widget.id)))
+        ),
         new IconButton(
           icon: const Icon(Icons.home), onPressed: null,
 //            onPressed: () {
@@ -349,4 +352,81 @@ class ChatMessage extends StatelessWidget {
       ),
     );
   }
+}
+
+class _CreateChatState extends State<CreateChat> {
+  var _suggestions = <dynamic>[];
+  
+  void _storeSuggestions(s){
+//    Map<String, dynamic> response = json.decode(s);
+    setState(() {
+      print(json.decode(s).length);
+      _suggestions = json.decode(s);
+      print(_suggestions);
+    });
+  }
+
+  _getSuggestions(keyword) async{
+    widget.session.get(
+      _url + 'AutoCompleteUser?term=' + keyword
+    ).then(_storeSuggestions);
+    print(_suggestions);
+    return new Future.delayed(Duration(seconds:1), () => _suggestions);
+//    return _suggestions;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text("New Conversation"),
+
+      ),
+      body: new TypeAheadField(
+        textFieldConfiguration: TextFieldConfiguration(
+            autofocus: true,
+            style: DefaultTextStyle.of(context).style.copyWith(
+                fontStyle: FontStyle.italic
+            ),
+            decoration: InputDecoration(
+                border: OutlineInputBorder()
+            )
+        ),
+        suggestionsCallback: (pattern) async {
+//          _getSuggestions(pattern);
+          return await _getSuggestions(pattern);
+        },
+        itemBuilder: (context, suggestion) {
+          return ListTile(
+//            leading: Icon(Icons.shopping_cart),
+            title: Text(suggestion['label']),
+//            subtitle: Text('\$${suggestion['price']}'),
+          );
+        },
+        onSuggestionSelected: (suggestion) {
+            widget.session.get(_url + 'CreateConversation?other_id=' + suggestion['value']);
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ChatDetail(
+              session: widget.session,
+              id: widget.id,
+              otherId: suggestion['value'],
+              otherName: suggestion['name'],
+            )));
+//          _suggestionSelected(suggestion['value'], suggestion['name']);
+        },
+      )
+    );
+  }
+
+
+}
+
+class CreateChat extends StatefulWidget {
+
+  final Session session;
+  final String id;
+  CreateChat({ Key key, this.session, this.id }) : super (key:key);
+  @override
+
+  _CreateChatState createState() => new _CreateChatState();
 }
