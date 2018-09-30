@@ -107,17 +107,17 @@ class _MyHomePageState extends State<MyHomePage> {
             onPressed: ()=>Navigator.push(context, MaterialPageRoute(builder: (context) => CreateChat(session:widget.session, id:widget.id)))
         ),
         new IconButton(
-          icon: const Icon(Icons.home), onPressed: null,
-//            onPressed: () {
-//              Navigator.push(
-//                  context,
-//                  MaterialPageRoute(
-//                      builder: (context) => ChatDetail(
-//                            session: widget.session,
-//                            id: widget.id,
-//                            otherId: otherId,
-//                          )));
-//            }
+          icon: const Icon(Icons.home),
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => MyHomePage(
+                            session: widget.session,
+                            id: widget.id,
+                          )));
+            }
         ),
         new IconButton(
             icon: const Icon(Icons.exit_to_app),
@@ -434,3 +434,4 @@ class CreateChat extends StatefulWidget {
 
   _CreateChatState createState() => new _CreateChatState();
 }
+
