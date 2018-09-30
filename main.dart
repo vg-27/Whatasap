@@ -103,9 +103,13 @@ class _MyHomePageState extends State<MyHomePage> {
     print(searchStr);
     return Scaffold(
       appBar: AppBar(title: Text('Chats'), actions: <Widget>[
-        new IconButton(icon: const Icon(Icons.create),
-            onPressed: ()=>Navigator.push(context, MaterialPageRoute(builder: (context) => CreateChat(session:widget.session, id:widget.id)))
-        ),
+        new IconButton(
+            icon: const Icon(Icons.create),
+            onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        CreateChat(session: widget.session, id: widget.id)))),
         new IconButton(
           icon: const Icon(Icons.home), onPressed: null,
 //            onPressed: () {
@@ -264,6 +268,17 @@ class _ChatDetailState extends State<ChatDetail> {
         {"id": widget.id, "other_id": widget.otherId}).then(_resToConv);
     return new Scaffold(
       appBar: new AppBar(
+        leading: new IconButton(
+            icon: new Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.popUntil(
+                  context, ModalRoute.withName(Navigator.defaultRouteName));
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          MyHomePage(session: widget.session, id: widget.id)));
+            }),
         title: Text(widget.otherName),
       ),
       body: new Column(
@@ -360,8 +375,8 @@ class ChatMessage extends StatelessWidget {
 
 class _CreateChatState extends State<CreateChat> {
   var _suggestions = <dynamic>[];
-  
-  void _storeSuggestions(s){
+
+  void _storeSuggestions(s) {
 //    Map<String, dynamic> response = json.decode(s);
     setState(() {
       print(json.decode(s).length);
@@ -370,12 +385,12 @@ class _CreateChatState extends State<CreateChat> {
     });
   }
 
-  _getSuggestions(keyword) async{
-    widget.session.get(
-      _url + 'AutoCompleteUser?term=' + keyword
-    ).then(_storeSuggestions);
+  _getSuggestions(keyword) async {
+    widget.session
+        .get(_url + 'AutoCompleteUser?term=' + keyword)
+        .then(_storeSuggestions);
     print(_suggestions);
-    return new Future.delayed(Duration(seconds:1), () => _suggestions);
+    return new Future.delayed(Duration(seconds: 1), () => _suggestions);
 //    return _suggestions;
   }
 
@@ -383,54 +398,49 @@ class _CreateChatState extends State<CreateChat> {
   Widget build(BuildContext context) {
     // TODO: implement build
     return new Scaffold(
-      appBar: new AppBar(
-        title: new Text("New Conversation"),
-
-      ),
-      body: new TypeAheadField(
-        textFieldConfiguration: TextFieldConfiguration(
-            autofocus: true,
-            style: DefaultTextStyle.of(context).style.copyWith(
-                fontStyle: FontStyle.italic
-            ),
-            decoration: InputDecoration(
-                border: OutlineInputBorder()
-            )
+        appBar: new AppBar(
+          title: new Text("New Conversation"),
         ),
-        suggestionsCallback: (pattern) async {
+        body: new TypeAheadField(
+          textFieldConfiguration: TextFieldConfiguration(
+              autofocus: true,
+              style: DefaultTextStyle.of(context)
+                  .style
+                  .copyWith(fontStyle: FontStyle.italic),
+              decoration: InputDecoration(border: OutlineInputBorder())),
+          suggestionsCallback: (pattern) async {
 //          _getSuggestions(pattern);
-          return await _getSuggestions(pattern);
-        },
-        itemBuilder: (context, suggestion) {
-          return ListTile(
+            return await _getSuggestions(pattern);
+          },
+          itemBuilder: (context, suggestion) {
+            return ListTile(
 //            leading: Icon(Icons.shopping_cart),
-            title: Text(suggestion['label']),
+              title: Text(suggestion['label']),
 //            subtitle: Text('\$${suggestion['price']}'),
-          );
-        },
-        onSuggestionSelected: (suggestion) {
-            widget.session.get(_url + 'CreateConversation?other_id=' + suggestion['value']);
-            Navigator.push(context, MaterialPageRoute(builder: (context) => ChatDetail(
-              session: widget.session,
-              id: widget.id,
-              otherId: suggestion['value'],
-              otherName: suggestion['name'],
-            )));
+            );
+          },
+          onSuggestionSelected: (suggestion) {
+            widget.session.get(
+                _url + 'CreateConversation?other_id=' + suggestion['value']);
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ChatDetail(
+                          session: widget.session,
+                          id: widget.id,
+                          otherId: suggestion['value'],
+                          otherName: suggestion['name'],
+                        )));
 //          _suggestionSelected(suggestion['value'], suggestion['name']);
-        },
-      )
-    );
+          },
+        ));
   }
-
-
 }
 
 class CreateChat extends StatefulWidget {
-
   final Session session;
   final String id;
-  CreateChat({ Key key, this.session, this.id }) : super (key:key);
+  CreateChat({Key key, this.session, this.id}) : super(key: key);
   @override
-
   _CreateChatState createState() => new _CreateChatState();
 }
