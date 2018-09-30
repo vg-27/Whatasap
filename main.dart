@@ -6,7 +6,7 @@ import 'dart:async';
 
 void main() => runApp(new MyApp());
 
-const String _url = 'http://192.168.0.165:8080/outlab8/';
+const String _url = 'http://192.168.2.11:8080/outlab8/';
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -34,6 +34,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final TextStyle _biggerFont = const TextStyle(fontSize: 18.0);
   var _allConv = <dynamic>[];
+  String searchStr = '';
 
   void _allConversations(s) {
     Map<String, dynamic> response = json.decode(s);
@@ -61,12 +62,19 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildChats() {
-    print("hi");
     return new ListView.builder(
       padding: const EdgeInsets.all(16.0),
       itemBuilder: (_, i) {
 //        else
-        return _buildRow(_allConv[i]);
+        if (_allConv[i]["uid"].contains(searchStr) ||
+            _allConv[i]["name"].contains(searchStr)) {
+          print(searchStr + 'hi');
+          return _buildRow(_allConv[i]);
+        } else {
+          return new Divider(
+            height: 0.0,
+          );
+        }
       },
       itemCount: _allConv.length,
     );
@@ -91,6 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     print(_allConv.length);
+    print(searchStr);
     return Scaffold(
       appBar: AppBar(title: Text('Chats'), actions: <Widget>[
         new IconButton(icon: const Icon(Icons.create), onPressed: null),
@@ -113,7 +122,19 @@ class _MyHomePageState extends State<MyHomePage> {
               Navigator.pop(context);
             })
       ]),
-      body: _asyncLoader,
+      body: new Column(
+        children: <Widget>[
+          new TextField(
+            onChanged: (val) {
+              setState(() {
+                searchStr = val;
+              });
+              _asyncLoaderState.currentState.reloadState();
+            },
+          ),
+          new Flexible(child: _asyncLoader),
+        ],
+      ),
     );
   }
 }
