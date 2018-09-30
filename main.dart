@@ -122,7 +122,11 @@ class _MyHomePageState extends State<MyHomePage> {
         new IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.popUntil(
+                  context, ModalRoute.withName(Navigator.defaultRouteName));
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => MyApp()));
+              widget.session.get(_url + 'LogoutServlet');
             })
       ]),
       body: new Column(
